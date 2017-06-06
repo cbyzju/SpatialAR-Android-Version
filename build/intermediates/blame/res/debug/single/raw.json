@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "C:\\work\\SpatialAR\\app\\build\\intermediates\\res\\merged\\debug\\raw\\nofixprinpoint_undistorpoint.xml",
+        "source": "C:\\work\\SpatialAR\\app\\src\\main\\res\\raw\\nofixprinpoint_undistorpoint.xml"
+    },
+    {
+        "merged": "C:\\work\\SpatialAR\\app\\build\\intermediates\\res\\merged\\debug\\raw\\fixprinpoint_undistorpoint.xml",
+        "source": "C:\\work\\SpatialAR\\app\\src\\main\\res\\raw\\fixprinpoint_undistorpoint.xml"
+    },
+    {
+        "merged": "C:\\work\\SpatialAR\\app\\build\\intermediates\\res\\merged\\debug\\raw\\cascade_zfz.xml",
+        "source": "C:\\work\\SpatialAR\\app\\src\\main\\res\\raw\\cascade_zfz.xml"
+    }
+]

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet config="unspecified"><source path="C:\work\SpatialAR\app\build\intermediates\exploded-aar\SpatialAR\openCVLibrary2410\unspecified\assets"/></dataSet><dataSet config="main"><source path="C:\work\SpatialAR\app\src\main\assets"><file name="cascade_zfz.xml" path="C:\work\SpatialAR\app\src\main\assets\cascade_zfz.xml"/></source><source path="C:\work\SpatialAR\app\build\generated\assets\shaders\debug"/></dataSet><dataSet config="debug"><source path="C:\work\SpatialAR\app\src\debug\assets"/></dataSet></merger>
