@@ -74,9 +74,6 @@ ProjectorCamera::ProjectorCamera()
     wavestate_finnal = NOWAVE;
 
 	init();
-	//for test
-	remove("frame_test.txt");
-    countid = 0;
 }
 
 /*!
@@ -100,7 +97,7 @@ ProjectorCamera::~ProjectorCamera()
 */
 void ProjectorCamera::init()
 {
-	//calibration result data	
+	//calibration result data
 	LOGD("try to open procamera_calib_paras.xml, %s", cablibParaFilePath.c_str());
 
 	cv::FileStorage fsin;
@@ -873,137 +870,92 @@ void ProjectorCamera::findFinger()
 			//touchPoint.tipInPro = calibDepToPro(touchPoint.tipPosition, touchPoint.tipDepth);
 			touchPoint.tipInPro = homogCamToPro(touchPoint.tipPosition);
 
-                        //for test
-                        LOGD("touchPointsAll.size() = %d",touchPointsAll.size());
-                        if(touchPointsAll.size()==0)
-                            touchPointsAll.push_back(touchPoint);
-                        else if(touchPoint.frameId - touchPointsAll[touchPointsAll.size()-1].frameId <150 ){
-                            touchPointsAll.push_back(touchPoint);
-                        }
-                        else{
-                        if(touchPointsAll.size()>1){
-                             int totalsize =  touchPointsAll[touchPointsAll.size()-1].frameId-  touchPointsAll[0].frameId+1;
-                             int cursize  =  touchPointsAll.size();
-                             int lostframes = totalsize- cursize;
-                             float lostframesratio = lostframes*1.0/totalsize;
-                             float speed =  (sqrt((touchPointsAll[touchPointsAll.size()-1].tipPosition.x-touchPointsAll[0].tipPosition.x)*(touchPointsAll[touchPointsAll.size()-1].tipPosition.x-touchPointsAll[0].tipPosition.x)+(touchPointsAll[touchPointsAll.size()-1].tipPosition.y-touchPointsAll[0].tipPosition.y)*(touchPointsAll[touchPointsAll.size()-1].tipPosition.y-touchPointsAll[0].tipPosition.y)))*1.0/(totalsize*1.0/30);
-                             speed = speed/16.0; //cm/s.
-                             LOGD("countid = %d, lostframesratio = %f,speed = %f,totalsize = %d,cursize = %d, startPoint = (%f,%f),endPoint = (%f,%f)",countid, lostframesratio,speed,totalsize,cursize,touchPointsAll[0].tipPosition.x,touchPointsAll[0].tipPosition.y,touchPointsAll[touchPointsAll.size()-1].tipPosition.x,touchPointsAll[touchPointsAll.size()-1].tipPosition.y);
+			LOGD("nativeStart caught in findFinger detect touchPoint: %d %f %f %f %f %f %f/n", frameId,
+				touchPoint.tipPosition.x, touchPoint.tipPosition.y,
+				touchPoint.tipInPro.x, touchPoint.tipInPro.y, angle,fingerRatio);
 
-                             countid++;
-                             ofstream outfile;
-                             outfile.open("/sdcard/frame_test.txt", ios::app);
-                             if(!outfile)
-                                 LOGD("no this file %d", frameId);
-                              else
-                             {
-                                 //outfile<<"end id: "<<touchPointsAll[touchPointsAll.size()-1].frameId<<",start id: "<<touchPointsAll[0].frameId<<",totalsize: "<< totalsize<<",cursize: "<<cursize<<",lostframes: "<<lostframes<<",lostratio: "<<",lostframesratio"<<lostframesratio<<endl;
-                                 //outfile<<countid<<" "<<touchPointsAll[0].frameId<<" "<<touchPointsAll[touchPointsAll.size()-1].frameId<<"  "<< totalsize<<" "<<cursize<<" "<<lostframes<<" "<<lostframesratio<<" "<<speed<<" ";
-                                 outfile<<countid<<" "<< touchPointsAll[0].frameId<<" "<<touchPointsAll[touchPointsAll.size()-1].frameId<<" "<<totalsize<<" "<<cursize<<" ";
-                                 //LOGD("ID = %f, total frame = %d, valid frame = %d", countid, totalsize, cursize);
-                                 for(int kk=0; kk<touchPointsAll.size(); ++kk)
-                                 {
-                                      outfile<< touchPointsAll[kk].frameId<<" "<<touchPointsAll[kk].tipPosition.x<<" "<<touchPointsAll[kk].tipPosition.y<<" ";
-                                      //float p_speed = (sqrt((touchPointsAll[kk+1].tipPosition.x-touchPointsAll[kk].tipPosition.x)*(touchPointsAll[kk+1].tipPosition.x-touchPointsAll[kk].tipPosition.x)+(touchPointsAll[kk+1].tipPosition.y-touchPointsAll[kk].tipPosition.y)*(touchPointsAll[kk+1].tipPosition.y-touchPointsAll[kk].tipPosition.y)))*1.0/((touchPointsAll[kk+1].frameId-touchPointsAll[kk].frameId)*1.0/30);
-                                     // p_speed = p_speed/16.0; //cm/s
-                                     // outfile<<p_speed<<" ";
-                                 }
-                                 outfile<<"\r\n";
-                                 //outfile<<endl;
-                             }
-                              outfile.close();
-                        }
-                            touchPointsAll.clear();
-                            touchPointsAll.push_back(touchPoint);
-                        }
+			curtHand.touchPoints.push_back(touchPoint);
+		}
 
-            			LOGD("nativeStart caught in findFinger detect touchPoint: %d %f %f %f %f %f %f/n", frameId,
-            				touchPoint.tipPosition.x, touchPoint.tipPosition.y,
-            				touchPoint.tipInPro.x, touchPoint.tipInPro.y, angle,fingerRatio);
+		if (curtHand.touchPoints.size()>0)
+		{
+		    LOGD("nativeStart caught in findFinger %d",curtHand.touchPoints.size());
+			fingerTouchRole.curtTouchHands.push_back(curtHand);
+		}
 
-            			curtHand.touchPoints.push_back(touchPoint);
-            		}
+		int nearestHistHandInd = -1;
+		for (int handInd = 0; handInd < vtouchHand_last.size(); handInd++)
+		{
+			float palmDis = norm(vtouchHand_last[handInd].palmCenter - curtHand.palmCenter);
 
-            		if (curtHand.touchPoints.size()>0)
-            		{
-            		    LOGD("nativeStart caught in findFinger %d",curtHand.touchPoints.size());
-            			fingerTouchRole.curtTouchHands.push_back(curtHand);
-            		}
+			LOGD("nativeStart caught in findFinger insert touchPoint: %d firstId%d palmDis%f lastid%d oldDepth%f curDepth%f histSize%d curtSize%d",
+				frameId, fingerTouchRole.firstTouchId, palmDis, vtouchHand_last[handInd].frameId,
+				vtouchHand_last[handInd].palmDepth, foreground.at<float>(curtHand.palmCenter),
+				vtouchHand_last[handInd].touchPoints.size(), curtHand.touchPoints.size());
 
-                    continue;//关闭补点操作。
-            		int nearestHistHandInd = -1;
-            		for (int handInd = 0; handInd < vtouchHand_last.size(); handInd++)
-            		{
-            			float palmDis = norm(vtouchHand_last[handInd].palmCenter - curtHand.palmCenter);
+			//static hand
+            if (existFinger) continue;
 
-            			LOGD("nativeStart caught in findFinger insert touchPoint: %d firstId%d palmDis%f lastid%d oldDepth%f curDepth%f histSize%d curtSize%d",
-            				frameId, fingerTouchRole.firstTouchId, palmDis, vtouchHand_last[handInd].frameId,
-            				vtouchHand_last[handInd].palmDepth, foreground.at<float>(curtHand.palmCenter),
-            				vtouchHand_last[handInd].touchPoints.size(), curtHand.touchPoints.size());
+			if (palmDis < 5 ||
+			    palmDis > 45 + 15* (frameId - vtouchHand_last[handInd].frameId) || //palm center is near
+				frameId - vtouchHand_last[handInd].frameId >= 3 ||                        //continue in 3 frames
+				curtHand.touchPoints.size() >= vtouchHand_last[handInd].touchPoints.size() || //exist history hand,who's touch points bigger than current hand
+				foreground.at<float>(curtHand.palmCenter) - vtouchHand_last[handInd].palmDepth > 15 || //hand palm depth not shape change
+				curtHand.palmCenter.y > depthImg.rows - 10)                              //near border not add
+			{
+				continue;
+			}
+			else
+			{
+				nearestHistHandInd = handInd;
+				break;
+			}
+		}
 
-            			//static hand
-                        if (existFinger) continue;
+		if (nearestHistHandInd < 0) continue;
 
-            			if (palmDis < 5 ||
-            			    palmDis > 45 + 15* (frameId - vtouchHand_last[handInd].frameId) || //palm center is near
-            				frameId - vtouchHand_last[handInd].frameId >= 3 ||                        //continue in 3 frames
-            				curtHand.touchPoints.size() >= vtouchHand_last[handInd].touchPoints.size() || //exist history hand,who's touch points bigger than current hand
-            				foreground.at<float>(curtHand.palmCenter) - vtouchHand_last[handInd].palmDepth > 15 || //hand palm depth not shape change
-            				curtHand.palmCenter.y > depthImg.rows - 10)                              //near border not add
-            			{
-            				continue;
-            			}
-            			else
-            			{
-            				nearestHistHandInd = handInd;
-            				break;
-            			}
-            		}
+		TouchHand& corpHand = vtouchHand_last[nearestHistHandInd];
+		TouchHand  instHand;
+		for (int pointInd = 0; pointInd < corpHand.touchPoints.size(); pointInd++)
+		{
+			TouchPoint touchPoint = corpHand.touchPoints[pointInd];
+			touchPoint.tipPosition = touchPoint.palmToTip + cv::Point2f(curtHand.palmCenter.x, curtHand.palmCenter.y);
+			if(touchPoint.tipPosition.y < 0 || touchPoint.tipPosition.y > depthImg.rows - 1 ||
+			   touchPoint.tipPosition.x < 0 || touchPoint.tipPosition.x > depthImg.cols - 1)
+			   continue;
+			touchPoint.tipDepth = averaImg.at<float>(touchPoint.tipPosition.y, touchPoint.tipPosition.x);
+			touchPoint.bottomPosition = curtHand.palmCenter;
+			touchPoint.bottomDepth = depthImg.at<float>(curtHand.palmCenter);
+			touchPoint.getAngle();
+			touchPoint.getOrien();
+			touchPoint.palmToTip = touchPoint.tipPosition - cv::Point2f(curtHand.palmCenter.x, curtHand.palmCenter.y);
+			touchPoint.frameId = frameId;
+			touchPoint.isReal = false;
+			//touchPoint.tipInPro = calibDepToPro(touchPoint.tipPosition, touchPoint.tipDepth);
+			touchPoint.tipInPro = homogCamToPro(touchPoint.tipPosition);
+			instHand.touchPoints.push_back(touchPoint);
 
-            		if (nearestHistHandInd < 0) continue;
+			LOGD("nativeStart caught in findFinger insert touchPoint: %d %d %d %f %f/n", frameId,
+				touchPoint.tipPosition.x, touchPoint.tipPosition.y,
+				touchPoint.tipInPro.x, touchPoint.tipInPro.y);
 
-            		TouchHand& corpHand = vtouchHand_last[nearestHistHandInd];
-            		TouchHand  instHand;
-            		for (int pointInd = 0; pointInd < corpHand.touchPoints.size(); pointInd++)
-            		{
-            			TouchPoint touchPoint = corpHand.touchPoints[pointInd];
-            			touchPoint.tipPosition = touchPoint.palmToTip + cv::Point2f(curtHand.palmCenter.x, curtHand.palmCenter.y);
-            			if(touchPoint.tipPosition.y < 0 || touchPoint.tipPosition.y > depthImg.rows - 1 ||
-            			   touchPoint.tipPosition.x < 0 || touchPoint.tipPosition.x > depthImg.cols - 1)
-            			   continue;
-            			touchPoint.tipDepth = averaImg.at<float>(touchPoint.tipPosition.y, touchPoint.tipPosition.x);
-            			touchPoint.bottomPosition = curtHand.palmCenter;
-            			touchPoint.bottomDepth = depthImg.at<float>(curtHand.palmCenter);
-            			touchPoint.getAngle();
-            			touchPoint.getOrien();
-            			touchPoint.palmToTip = touchPoint.tipPosition - cv::Point2f(curtHand.palmCenter.x, curtHand.palmCenter.y);
-            			touchPoint.frameId = frameId;
-            			touchPoint.isReal = false;
-            			//touchPoint.tipInPro = calibDepToPro(touchPoint.tipPosition, touchPoint.tipDepth);
-            			touchPoint.tipInPro = homogCamToPro(touchPoint.tipPosition);
-            			instHand.touchPoints.push_back(touchPoint);
+		}
 
-            			LOGD("nativeStart caught in findFinger insert touchPoint: %d %d %d %f %f/n", frameId,
-            				touchPoint.tipPosition.x, touchPoint.tipPosition.y,
-            				touchPoint.tipInPro.x, touchPoint.tipInPro.y);
+        //success insert touch points
+        if(instHand.touchPoints.size()>0)
+        {
+		    instHand.palmCenter = curtHand.palmCenter;
+		    instHand.palmDepth = corpHand.palmDepth;
+		    instHand.frameId = frameId;
+		    fingerTouchRole.curtTouchHands.push_back(instHand);
+		}
 
-            		}
+	} // contour conditional
 
-                    //success insert touch points
-                    if(instHand.touchPoints.size()>0)
-                    {
-            		    instHand.palmCenter = curtHand.palmCenter;
-            		    instHand.palmDepth = corpHand.palmDepth;
-            		    instHand.frameId = frameId;
-            		    fingerTouchRole.curtTouchHands.push_back(instHand);
-            		}
-
-            	} // contour conditional
-
-            	//transform position from camera to projector
-            	//transAxisCameraToPro();
-            	return;
-            }
+	//transform position from camera to projector
+	//transAxisCameraToPro();
+	return;
+}
 
 /*!
 @function              detection projection above desk
@@ -1112,309 +1064,127 @@ void ProjectorCamera::findInAirObject()
 */
 void ProjectorCamera::findOnDeskObject()
 {
-	float plate_max = 15000;  //constraint the plate area, upper bound for plate
-	float plate_min = 10000;  //lower bound for plate
-	float first_diff = 15;    //the diff tolerance between vpoints and icp
-	float second_diff = 6;    //the diff tolerance between current frame and last frame
 	//LOGF("Processing flow : %s", "findOnDeskObject start");
-
 	for (int ind = 0; ind < objects.size(); ind++)
 	{
-	    //LOGD("Processing flow findOnDeskObject: object %d, area %f\n", ind, objects[ind].cArea);
-		if (objects[ind].cArea<plate_min) continue;
+	    //LOGD("Processing flow findOnDeskObject: area%f", objects[ind].cArea);
+		if (objects[ind].cArea<6500 || objects[ind].cArea>19000) continue;
 
+		//contour to
 		TouchHand temHand;
 		cv::Mat contourMat = cv::Mat(objects[ind].contour);
 		cv::approxPolyDP(contourMat, temHand.approxCurve, 15, true);
+		if (temHand.approxCurve.size() != 4) continue;
+
 		bool boatDemo = false;
-
-		cv::Point2f ppt[4];
-		vector<cv::Point2f> vpoints(ppt, ppt + 4);
-		cv::Scalar center;
-		cv::Point centerPoint;
-		//std::cout << "temHand.approxCurve.size(): "<<temHand.approxCurve.size() << endl;
-#pragma region read camera parameters and store them by Eigen, it is convinient for calculation
-		double cx = depth_KK.at<double>(0, 2);
-		double cy = depth_KK.at<double>(1, 2);
-		double fx = depth_KK.at<double>(0, 0);
-		double fy = depth_KK.at<double>(1, 1);
-		Eigen::Matrix<double, 3, 3> DepToColR;
-		Eigen::Matrix<double, 3, 1> DepToColT;
-		Eigen::Matrix<double, 3, 3> ColToProR;
-		Eigen::Matrix<double, 3, 1> ColToProT;
-
-		DepToColR << depToColR.at<double>(0, 0), depToColR.at<double>(0, 1), depToColR.at<double>(0, 2),
-			         depToColR.at<double>(1, 0), depToColR.at<double>(1, 1), depToColR.at<double>(1, 2),
-			         depToColR.at<double>(2, 0), depToColR.at<double>(2, 1), depToColR.at<double>(2, 2);
-		DepToColT << depToColT.at<double>(0, 0), depToColT.at<double>(1, 0), depToColT.at<double>(2, 0);
-		ColToProR << colToProR.at<double>(0, 0), colToProR.at<double>(0, 1), colToProR.at<double>(0, 2),
-			         colToProR.at<double>(1, 0), colToProR.at<double>(1, 1), colToProR.at<double>(1, 2),
-			         colToProR.at<double>(2, 0), colToProR.at<double>(2, 1), colToProR.at<double>(2, 2);
-		ColToProT << colToProT.at<double>(0, 0), colToProT.at<double>(1, 0), colToProT.at<double>(2, 0);
-#pragma endregion
-#pragma region hand in the view, beside or on the plate
-		if (temHand.approxCurve.size() != 4)                                                   //process the scenario that there are other objects in the scene other than plate.
-		{
-			if (stereoProjectDesk.lastId == 0) continue;                                      //do not project when we place the plate into the scene for the first time.
-
-			first_diff = 20;                                                                   //the diff tolerance between vpoints and icp
-			second_diff = 8;                                                                   //the diff between c
-			cv::Mat plate, plateIm;
-			cv::threshold(foreground, plate, 36, 255, CV_THRESH_TOZERO_INV);                        //segment hand from the foreground
-			convertFloatToChar(plate, plateIm);                                                //used for findContours
-			vector< vector<cv::Point> > contours;
-			cv::findContours(plateIm, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);      //store all corner points in the contours.
-
-			vector<cv::Point> corner;
-			vector<cv::Point2f> tmp_vpoints;
-			vector<cv::Point2f> refined;                                                     //useful points
-			vector<cv::Point> rejected;                                                      //useless points
-			vector<float> v_depth;                                                          //store the depth value of points.
-			vector<cv::Point3f> vp_pro;                                                     //the 3D coordinate
-			for (size_t index = 0; index < contours.size(); ++index)
-			{
-				double area = contourArea(contours[index]);                                //the area of the contours
-				if (area < 5000)                                                           //don't care noise from small object
-					continue;
-				tmp_vpoints.clear();
-				refined.clear();
-				rejected.clear();
-				approxPolyDP(contours[index], corner, 15, true);                          //用多边形去拟合轮廓，找到角点
-
-#pragma region refine the corner points
-				refined.push_back(corner[0]);
-				for (size_t ind = 1; ind < corner.size(); ++ind)                          //refine the corner points
-				{
-					if (ind == corner.size() - 1)
-					{
-						if (norm(corner[ind] - corner[ind - 1])>90 && norm(corner[ind] - corner[ind - 1])<130 || norm(corner[ind] - corner[0])>90 && norm(corner[ind] - corner[0])<130)
-							refined.push_back(corner[ind]);
-						else
-							rejected.push_back(corner[ind]);
-					}
-					else
-					{
-						if (norm(corner[ind] - corner[ind - 1])>90 && norm(corner[ind] - corner[ind - 1])<130 || norm(corner[ind] - corner[ind + 1])>90 && norm(corner[ind] - corner[ind + 1])<130)
-							refined.push_back(corner[ind]);
-						else
-							rejected.push_back(corner[ind]);
-					}
-				}
-				if (refined.size() < 3)
-					continue;
-
-				if (refined.size() == 3)
-				{
-					first_diff = 20;    //the diff tolerance between vpoints and icp
-					second_diff = 15;
-					clockwiseContour(refined);
-					double val_1 = abs((refined[0].x - refined[1].x)*(refined[0].x - refined[2].x) + (refined[0].y - refined[1].y)*(refined[0].y - refined[2].y));
-					double val_2 = abs((refined[1].x - refined[0].x)*(refined[1].x - refined[2].x) + (refined[1].y - refined[0].y)*(refined[1].y - refined[2].y));
-					double val_3 = abs((refined[2].x - refined[1].x)*(refined[2].x - refined[0].x) + (refined[2].y - refined[1].y)*(refined[2].y - refined[0].y));
-					if (val_1<val_2 && val_1<val_3)
-						refined.push_back(refined[1] + refined[2] - refined[0]);
-					if (val_2<val_1 && val_2<val_3)
-						refined.push_back(refined[0] + refined[2] - refined[1]);
-					if (val_3<val_1 && val_3<val_2)
-						refined.push_back(refined[0] + refined[1] - refined[2]);
-				}
-#pragma endregion
-				cv::RotatedRect rorec = minAreaRect(refined);                      //寻找包含所有输入2D点的最小旋转矩形
-				rorec.points(ppt);
-				for (int ind = 0; ind < 4; ++ind)
-					tmp_vpoints.push_back(ppt[ind]);
-				clockwiseContour(tmp_vpoints);
-				bool outofBoundary = false;  //check if the points are out of boundary or not.
-				vector<float> d_val;
-				vector<cv::Point3f> tmp_3D;
-				for (int ind = 0; ind < tmp_vpoints.size(); ++ind)
-				{
-					if (tmp_vpoints[ind].x<1 || tmp_vpoints[ind].x>screenRoi.width - 1 || tmp_vpoints[ind].y<1 || tmp_vpoints[ind].y>screenRoi.height - 1)
-					{
-						outofBoundary = true;
-						break;
-					}
-					d_val.push_back(averaImg.at<float>(tmp_vpoints[ind].y, tmp_vpoints[ind].x));
-				}
-				if (outofBoundary)
-					continue;
-				calibDepToPro(tmp_vpoints, d_val, tmp_3D);
-				bool isNotPlate = false;  //to check this contour is a plate or not.
-				if (abs(norm(tmp_3D[0] - tmp_3D[1])
-					- norm(tmp_3D[0] - tmp_3D[3])) > 30 ||
-					abs(norm(tmp_3D[2] - tmp_3D[1])
-					- norm(tmp_3D[2] - tmp_3D[3])) > 30)
-					isNotPlate = true;
-
-				bool notmoved = false;
-				if (isNotPlate)
-				{
-					vector<cv::Point3f> lastVertex3D = stereoProjectDesk.proVertex3D;
-					Eigen::Matrix<double, 3, 4> pre_vpoints;
-					pre_vpoints << lastVertex3D[0].x, lastVertex3D[1].x, lastVertex3D[2].x, lastVertex3D[3].x,
-						           lastVertex3D[0].y, lastVertex3D[1].y, lastVertex3D[2].y, lastVertex3D[3].y,
-						           lastVertex3D[0].z, lastVertex3D[1].z, lastVertex3D[2].z, lastVertex3D[3].z;
-
-					for (size_t ii = 0; ii < 4; ++ii)
-					{
-						pre_vpoints(0, ii) = -pre_vpoints(0, ii);
-						pre_vpoints.col(ii) = ColToProR.inverse()*(pre_vpoints.col(ii) - ColToProT);
-						pre_vpoints.col(ii) = DepToColR.inverse()*(pre_vpoints.col(ii) - DepToColT);
-						pre_vpoints(0, ii) = pre_vpoints(0, ii)*fx / pre_vpoints(2, ii) + cx - screenRoi.x;
-						pre_vpoints(1, ii) = pre_vpoints(1, ii)*fy / pre_vpoints(2, ii) + cy - screenRoi.y;  //匹配完的点，转到图像坐标系下
-					}
-					for (int inx = 0; inx < tmp_vpoints.size(); ++inx)
-					{
-						for (int iny = 0; iny < 4; ++iny)
-						{
-							cv::Point2f pre(pre_vpoints(0, iny), pre_vpoints(1, iny));
-							double distance = norm(tmp_vpoints[inx] - pre);
-							if (distance < 16)
-							{
-								notmoved = true;
-								break;
-							}
-						}
-						if (notmoved)
-						{
-							//cout << "I am in notPlate-3" << endl;
-							vpoints[0] = cv::Point2f(pre_vpoints(0, 0), pre_vpoints(1, 0));
-							vpoints[1] = cv::Point2f(pre_vpoints(0, 1), pre_vpoints(1, 1));
-							vpoints[2] = cv::Point2f(pre_vpoints(0, 2), pre_vpoints(1, 2));
-							vpoints[3] = cv::Point2f(pre_vpoints(0, 3), pre_vpoints(1, 3));
-							center = mean(vpoints);
-							centerPoint = cv::Point(center.val[0], center.val[1]);
-							vpoints.push_back(centerPoint);
-							break;
-						}
-					}
-				}
-				if (notmoved)
-					break;
-				if (isNotPlate && !notmoved)
-					continue;
-				vpoints[0] = ppt[0];
-				vpoints[1] = ppt[1];
-				vpoints[2] = ppt[2];
-				vpoints[3] = ppt[3];
-				clockwiseContour(vpoints);
-				center = mean(vpoints);
-				centerPoint = cv::Point(center.val[0], center.val[1]);
-				float centerDepth = foreground.at<float>(centerPoint.y, centerPoint.x);
-				if (centerDepth < 15) boatDemo = true;
-				vpoints.push_back(centerPoint);
-			}
-		}
-#pragma endregion
-#pragma region just plate
-		else
-		{
-			if (objects[ind].cArea<plate_min || objects[ind].cArea>plate_max) continue; //to remove hand，which also has four verticals.
-			center = mean(cv::Mat(temHand.approxCurve));
-			centerPoint = cv::Point(center.val[0], center.val[1]);
-			float centerDepth = foreground.at<float>(centerPoint.y, centerPoint.x);
-			if (centerDepth < 15) boatDemo = true;
-			if (centerDepth > 100) continue;
-			//is a rectangle, to remove hand，which also has four verticals, and its area is between the boundary.
-			if (abs(norm(temHand.approxCurve[0] - temHand.approxCurve[1])
-				- norm(temHand.approxCurve[2] - temHand.approxCurve[3])) > 40 ||
-				abs(norm(temHand.approxCurve[2] - temHand.approxCurve[1])
-				- norm(temHand.approxCurve[0] - temHand.approxCurve[3])) > 40)
+		cv::Scalar center = cv::mean(cv::Mat(temHand.approxCurve));
+		cv::Point centerPoint = cv::Point(center.val[0], center.val[1]);
+		float centerDepth = foreground.at<float>(centerPoint.y, centerPoint.x);
+		if (centerDepth < 15) boatDemo = true;
+		if (centerDepth > 100) continue;
+		//is a rectangle
+		if (abs(norm(temHand.approxCurve[0] - temHand.approxCurve[1])
+			- norm(temHand.approxCurve[2] - temHand.approxCurve[3])) > 50 ||
+			abs(norm(temHand.approxCurve[2] - temHand.approxCurve[1])
+			- norm(temHand.approxCurve[0] - temHand.approxCurve[3])) > 50)
 				continue;
 
-			first_diff = 15;    //the diff tolerance between vpoints and icp
-			second_diff = 6;
+		//get four verticals
+		cv::RotatedRect rorec = minAreaRect(objects[ind].contour);
+		cv::Point2f ppt[4];
+		rorec.points(ppt);
+		vector<cv::Point2f> vpoints(ppt, ppt + 4),vpoints2(4);
 
-			//get four verticals
-			cv::RotatedRect rorec = minAreaRect(objects[ind].contour);
-			rorec.points(ppt);
-			vpoints[0] = temHand.approxCurve[0];
-			vpoints[1] = temHand.approxCurve[1];
-			vpoints[2] = temHand.approxCurve[2];
-			vpoints[3] = temHand.approxCurve[3];
-			for (size_t index = 0; index < 4; ++index)
-			{
-				for (size_t ind = 0; ind < 4; ++ind)
-				{
-					if (norm(vpoints[index] - ppt[ind]) < 20)
-						vpoints[index] = cv::Point2f((vpoints[index].x + ppt[ind].x) / 2, (vpoints[index].y + ppt[ind].y) / 2);
-				}
-			}
-			clockwiseContour(vpoints);
-			center = mean(vpoints);
-			centerPoint = cv::Point(center.val[0], center.val[1]);
-			vpoints.push_back(centerPoint);
-		}
-#pragma endregion
+		vpoints[0] = temHand.approxCurve[0];
+		vpoints[1] = temHand.approxCurve[1];
+		vpoints[2] = temHand.approxCurve[2];
+		vpoints[3] = temHand.approxCurve[3];
+		for (size_t index = 0; index < 4; ++index)
+        {
+        	for (size_t ind = 0; ind < 4; ++ind)
+        	{
+        		if (norm(vpoints[index] - ppt[ind]) < 20)
+        			vpoints[index] = cv::Point2f((vpoints[index].x*1/2 + ppt[ind].x*1/2), (vpoints[index].y*1.0/2 + ppt[ind].y*1.0/2));
+        	}
+        }
+        clockwiseContour(vpoints);
+        center = mean(vpoints);
+        centerPoint = cv::Point(center.val[0], center.val[1]);
+        vpoints.push_back(centerPoint);
 
-#pragma region check the points out of boundary or not
-		bool outofBoundary = false;
-		for (size_t k = 0; k < vpoints.size(); ++k) //图像像素坐标系下的点在相机坐标系下的物理坐标
-		{
-			if (vpoints[k].x<1 || vpoints[k].x>screenRoi.width - 1 || vpoints[k].y<1 || vpoints[k].y>screenRoi.height - 1)
-			{
-				outofBoundary = true;
-				break;
-			}
-		}
-		if (outofBoundary)
-			continue;
-#pragma endregion
+        #pragma region read camera parameters and store them by Eigen, it is convinient for calculating
+        double cx = depth_KK.at<double>(0, 2);
+        double cy = depth_KK.at<double>(1, 2);
+        double fx = depth_KK.at<double>(0, 0);
+        double fy = depth_KK.at<double>(1, 1);
+        Eigen::Matrix<double, 3, 3> DepToColR;
+        Eigen::Matrix<double, 3, 1> DepToColT;
+        Eigen::Matrix<double, 3, 3> ColToProR;
+        Eigen::Matrix<double, 3, 1> ColToProT;
 
-#pragma region read the template and construct target point cloud
+        DepToColR << depToColR.at<double>(0, 0), depToColR.at<double>(0, 1), depToColR.at<double>(0, 2),
+        			 depToColR.at<double>(1, 0), depToColR.at<double>(1, 1), depToColR.at<double>(1, 2),
+        			 depToColR.at<double>(2, 0), depToColR.at<double>(2, 1), depToColR.at<double>(2, 2);
+        DepToColT << depToColT.at<double>(0, 0), depToColT.at<double>(1, 0), depToColT.at<double>(2, 0);
+        ColToProR << colToProR.at<double>(0, 0), colToProR.at<double>(0, 1), colToProR.at<double>(0, 2),
+        			 colToProR.at<double>(1, 0), colToProR.at<double>(1, 1), colToProR.at<double>(1, 2),
+        			 colToProR.at<double>(2, 0), colToProR.at<double>(2, 1), colToProR.at<double>(2, 2);
+        ColToProT << colToProT.at<double>(0, 0), colToProT.at<double>(1, 0), colToProT.at<double>(2, 0);
+        #pragma endregion
+
 		pcl::PointCloud<pcl::PointXYZ>::Ptr target(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr source(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr result(new pcl::PointCloud<pcl::PointXYZ>);
 
-		if (pcl::io::loadPCDFile<pcl::PointXYZ>("/sdcard/five_n.pcd", *target) == -1)// open template point cloud, five_f
+		if (pcl::io::loadPCDFile<pcl::PointXYZ>("/sdcard/five_n.pcd", *target) == -1)//打开点云文件
 		{
-			//PCL_ERROR("Couldn't read file target.pcd\n");
+			//LOGD("frameId: %d Couldn't read file target.pcd", frameId);
 			return;
 		}
-#pragma endregion
-#pragma region construct source point cloud, select four corner points and the center
-		source->width = target->points.size();
-		source->height = 1;
-		source->is_dense = false;
-		source->points.resize(source->width * source->height);
-		Eigen::Matrix<double, 3, 1> Tmp;
-		Eigen::Matrix<double, 3, 1> PointInCol;
-		for (size_t k = 0; k < vpoints.size(); ++k) //图像像素坐标系下的点在相机坐标系下的物理坐标
-		{
-			double depthVal = averaImg.at<float>(vpoints[k].y, vpoints[k].x);
-			Tmp(0, 0) = depthVal * (vpoints[k].x + screenRoi.x - cx)*1.0 / fx;
-			Tmp(1, 0) = depthVal * (vpoints[k].y + screenRoi.y - cy)*1.0 / fy;
-			Tmp(2, 0) = depthVal;
-			PointInCol = DepToColR*Tmp + DepToColT;
-			source->points[k].x = PointInCol(0, 0);
-			source->points[k].y = PointInCol(1, 0);
-			source->points[k].z = PointInCol(2, 0);
-		}
-#pragma endregion
-		/*
-#pragma region remove lens distortion
-		//去除镜头的径向畸变
-		for (size_t index = 0; index < vpoints.size(); ++index)
-		{
-			vpoints[index].x += screenRoi.x;
-			vpoints[index].y += screenRoi.y;
-		}
-		//vector<cv::Point2f> point_in_camera_undised;
-		cv::undistortPoints(vpoints, vpoints, depth_KK, depth_dis, cv::Mat::eye(3, 3, CV_64F), depth_KK);
-		for (size_t mk = 0; mk < vpoints.size(); ++mk)
-		{
-			vpoints[mk].x -= screenRoi.x;
-			vpoints[mk].y -= screenRoi.y;
-		}
-#pragma endregion
-		*/
-#pragma region icp registration
+
+	    #pragma region construct source point cloud, select four corner points and the center
+    	source->width = target->points.size();
+    	source->height = 1;
+    	source->is_dense = false;
+    	source->points.resize(source->width * source->height);
+    	Eigen::Matrix<double, 3, 1> Tmp;
+    	Eigen::Matrix<double, 3, 1> PointInCol;
+    	for (size_t k = 0; k < vpoints.size(); ++k) //图像像素坐标系下的点在相机坐标系下的物理坐标
+    	{
+    	    //LOGD("coordinate %f, %f\n", vpoints[k].y, vpoints[k].x);
+    		double depthVal = averaImg.at<float>(vpoints[k].y, vpoints[k].x);
+    		Tmp(0, 0) = depthVal * (vpoints[k].x + screenRoi.x - cx)*1.0 / fx;
+    		Tmp(1, 0) = depthVal * (vpoints[k].y + screenRoi.y - cy)*1.0 / fy;
+    		Tmp(2, 0) = depthVal;
+    		PointInCol = DepToColR*Tmp + DepToColT;
+    		source->points[k].x = PointInCol(0, 0);
+    		source->points[k].y = PointInCol(1, 0);
+    		source->points[k].z = PointInCol(2, 0);
+    		//cout << "( " << PointInCol(0, 0) << "," << PointInCol(1, 0) << ", " << PointInCol(2, 0) <<")"<< endl;
+    	}
+        #pragma endregion
+/*
+        //去除镜头的径向畸变
+        for (size_t index = 0; index < vpoints.size(); ++index)
+        {
+        	   vpoints[index].x += screenRoi.x;
+        	   vpoints[index].y += screenRoi.y;
+        }
+        //vector<cv::Point2f> point_in_camera_undised;
+        cv::undistortPoints(vpoints, vpoints, depth_KK, depth_dis, cv::Mat::eye(3, 3, CV_64F), depth_KK);
+        for (size_t mk = 0; mk < vpoints.size(); ++mk)
+        {
+        		vpoints[mk].x -= screenRoi.x;
+        		vpoints[mk].y -= screenRoi.y;
+        }
+*/
+        #pragma region icp registration
 		size_t iterations = 200;
 		//pcl::GeneralizedIterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
 		pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
 		icp.setEuclideanFitnessEpsilon(1e-8);
 		//.setTransformationEpsilon(1e-8);
-		icp.setMaximumIterations(iterations);
+		//icp.setMaximumIterations(iterations);
 		icp.setInputSource(source);
 		icp.setInputTarget(target);
 		icp.align(*result);
@@ -1428,16 +1198,16 @@ void ProjectorCamera::findOnDeskObject()
 			  transformation(2, 0), transformation(2, 1), transformation(2, 2);
 		R_inv = RR.inverse();
 		TT << transformation(0, 3), transformation(1, 3), transformation(2, 3);
-#pragma endregion
-#pragma region move the key points in template to the right place by RT matrix achieved by icp algorithm
+        #pragma endregion
+
+        #pragma region move the key points in template to the right place by RT matrix achieved by icp algorithm
 		Eigen::Matrix<double, 3, 4> Corner;
 		Eigen::Matrix<double, 3, 1> Point;
-		for (size_t ii = 0; ii < 4; ++ii)
+		for (size_t ii = 0; ii < 4; ++ii)   //
 		{
 			Point << target->points[ii].x, target->points[ii].y, target->points[ii].z;
 			Corner.col(ii) = R_inv * (Point - TT);  //模板点在相机坐标系下的坐标
 		}
-
 		Eigen::Matrix<double, 3, 4> CornerInImage;
 		for (size_t ii = 0; ii < 4; ++ii)
 		{
@@ -1457,124 +1227,121 @@ void ProjectorCamera::findOnDeskObject()
 		reg[1] = cv::Point3f(CornerInPro(0, 3), CornerInPro(1, 3), CornerInPro(2, 3));
 		reg[2] = cv::Point3f(CornerInPro(0, 1), CornerInPro(1, 1), CornerInPro(2, 1));
 		reg[3] = cv::Point3f(CornerInPro(0, 2), CornerInPro(1, 2), CornerInPro(2, 2));
+        #pragma endregion
 
-#pragma endregion
-#pragma region keep stable
-		//（1）匹配失败处理：如果匹配完的点与vpoints距离不大，就用匹配完的点（更精确）；否则使用vpoints（匹配失败）。
-		float max_dis_1 = 0;
-		for (size_t mm = 0; mm < 4; ++mm)
-		{
-			float min_dis = 10000;
-			for (size_t nn = 0; nn < 4; ++nn)
-			{
-				float dis = sqrt((CornerInImage(0, mm) - vpoints[nn].x)*(CornerInImage(0, mm) - vpoints[nn].x) + (CornerInImage(1, mm) - vpoints[nn].y)*(CornerInImage(1, mm) - vpoints[nn].y));
-				if (dis < min_dis)
-					 min_dis = dis;
-			}
-			if (min_dis > max_dis_1)
-				max_dis_1 = min_dis; //匹配出的4个点和检测出的4个点的最大距离
-		}
-		vector<cv::Point3f> output_1;
-		vector<cv::Point2f> vpoints_four;
-		vector<float>  vertexDepth;
-		if (max_dis_1 > first_diff)
-		{
-			for (size_t index = 0; index < 4; ++index)
-			{
-				vpoints_four.push_back(vpoints[index]);
-				vertexDepth.push_back(averaImg.at<float>(vpoints[index].y, vpoints[index].x)); //at有点问题
-			}
+        #pragma region keep stable
+       	//（1）匹配失败处理：如果匹配完的点与vpoints距离不大，就用匹配完的点（更精确）；否则使用vpoints（匹配失败）。
+       	float bias = 0;    //y方向的系统偏差
+        float dep_bias = 0; //深度方向的系统偏差
+       	float max_dis_1 = 0;
+       	for (size_t mm = 0; mm < 4; ++mm)
+       	{
+       		float min_dis = 10000;
+       		for (size_t nn = 0; nn < 4; ++nn)
+       		{
+       			float dis = sqrt((CornerInImage(0, mm) - vpoints[nn].x)*(CornerInImage(0, mm) - vpoints[nn].x) + (CornerInImage(1, mm) - vpoints[nn].y)*(CornerInImage(1, mm) - vpoints[nn].y));
+       			if (dis < min_dis)
+       				min_dis = dis;
+       		}
+       		if (min_dis > max_dis_1)
+       			max_dis_1 = min_dis; //匹配出的4个点和检测出的4个点的最大距离
+       	}
+       	float first_diff = 15;
+       	float second_diff = 6;
+       	vector<cv::Point3f> output_1;
+       	vector<cv::Point2f> vpoints_four;
+       	vector<float>  vertexDepth;
+       	if (max_dis_1 > first_diff)
+       	{
+       		for (size_t index = 0; index < 4; ++index)
+       		{
+       			vpoints_four.push_back(vpoints[index]);
+       			vertexDepth.push_back(averaImg.at<float>(vpoints[index].y, vpoints[index].x));
+       		}
 
-			calibDepToPro(vpoints_four, vertexDepth, output_1);  //如果距离过大，使用vpoints在投影仪坐标系下的坐标
-			refineVerticals(output_1);
-			second_diff = 8; //vpoints的波动比较大
-		}
-		else
-		{
-			output_1 = reg;  //否则使用icp匹配出的点坐标
-		}
+            clockwiseContour(vpoints_four);
+       		calibDepToPro(vpoints_four, vertexDepth, output_1);  //如果距离过大，使用vpoints在投影仪坐标系下的坐标
+       		refineVerticals(output_1);
+       		second_diff = 8; //vpoints的波动比较大
+       		dep_bias = 0;
+       	}
+       	else
+       		output_1 = reg;  //否则使用icp匹配出的点坐标
 
-		//（2）防抖处理：如果（1）输出的点与上一次的点距离不大，就用上一次的点（防抖动）；否则使用本次的点（物体被移动）。
-		float bias = 0;    //y方向的系统偏差
-		float dep_bias = 0; //深度方向的系统偏差
-		vector<cv::Point3f> output_2(4);
-		if (stereoProjectDesk.lastId == 0)
-		{
-			output_2 = output_1;
-			stereoProjectDesk.proVertex3D = output_2;
-			for (size_t index = 0; index <stereoProjectDesk.proVertex3D.size(); ++index)
-			{
-				stereoProjectDesk.proVertex3D[index].y -= bias;
-				stereoProjectDesk.proVertex3D[index].z -= dep_bias;
-			}
-			stereoProjectDesk.lastId++;
-			stereoProjectDesk.valid = true;
-			continue;
-		}
+       	//（2）防抖处理：如果（1）输出的点与上一次的点距离不大，就用上一次的点（防抖动）；否则使用本次的点（物体被移动）。
+       	vector<cv::Point3f> output_2(4);
+       	if (stereoProjectDesk.lastId == 0)
+       	{
+       		output_2 = output_1;
+       		stereoProjectDesk.proVertex3D = output_2;
+       		for(size_t index =0; index <stereoProjectDesk.proVertex3D.size(); ++index)
+       		{
+               stereoProjectDesk.proVertex3D[index].y -= bias;
+               stereoProjectDesk.proVertex3D[index].z -= dep_bias;
+            }
+            stereoProjectDesk.last_bias = dep_bias;
+       		stereoProjectDesk.lastId++;
+       		stereoProjectDesk.valid = true;
+       		continue;
+       	}
+       	stereoProjectDesk.lastId++;
+	    for(size_t index =0; index <stereoProjectDesk.proVertex3D.size(); ++index)
+	    {
+	           stereoProjectDesk.proVertex3D[index].y += bias;
+	           stereoProjectDesk.proVertex3D[index].z += stereoProjectDesk.last_bias;
+	    }
 
-		stereoProjectDesk.lastId++;
+       	vector<cv::Point3f> lastVertex3D = stereoProjectDesk.proVertex3D;
+       	stereoProjectDesk.proVertex3D.clear();
 
-		for (size_t index = 0; index <stereoProjectDesk.proVertex3D.size(); ++index)
-		{
-			stereoProjectDesk.proVertex3D[index].y += bias;
-			stereoProjectDesk.proVertex3D[index].z += dep_bias;
-		}
-		vector<cv::Point3f> lastVertex3D = stereoProjectDesk.proVertex3D;
-		stereoProjectDesk.proVertex3D.clear();
+       	float max_dis_2 = 0;
+       	for (size_t mm = 0; mm < output_1.size(); ++mm)
+       	{
+       		float min_dis = 10000;
+       		for (size_t nn = 0; nn < lastVertex3D.size(); ++nn)
+       		{
+       			float dis = sqrt((output_1[mm].x - lastVertex3D[nn].x)*(output_1[mm].x - lastVertex3D[nn].x) + (output_1[mm].y - lastVertex3D[nn].y)*(output_1[mm].y - lastVertex3D[nn].y));
+       			if (dis < min_dis)
+       				min_dis = dis;
+       		}
+       		if (min_dis > max_dis_2)
+       			max_dis_2 = min_dis;
+       	}
 
-		float max_dis_2 = 0;
-		for (size_t mm = 0; mm < output_1.size(); ++mm)
-		{
-			float min_dis = 10000;
-			for (size_t nn = 0; nn < lastVertex3D.size(); ++nn)
-			{
-				float dis = sqrt((output_1[mm].x - lastVertex3D[nn].x)*(output_1[mm].x - lastVertex3D[nn].x) + (output_1[mm].y - lastVertex3D[nn].y)*(output_1[mm].y - lastVertex3D[nn].y));
-				if (dis < min_dis)
-					min_dis = dis;
-			}
-			if (min_dis > max_dis_2)
-				max_dis_2 = min_dis;
-		}
+       	if (max_dis_2 <= second_diff) // 0~5
+       		output_2 = lastVertex3D;
+       	else if (max_dis_2 > second_diff  && max_dis_2 < second_diff * 2) //5~10
+       	{
+       		for (size_t mm = 0; mm < 4; ++mm)
+       		{
+       			float min_dis = 1000;
+       			for (size_t nn = 0; nn < 4; ++nn)
+       			{
+       				float dis = sqrt((lastVertex3D[mm].x - output_1[nn].x)*(lastVertex3D[mm].x - output_1[nn].x) + (lastVertex3D[mm].y - output_1[nn].y)*(lastVertex3D[mm].y - output_1[nn].y));
+       				if (dis < min_dis)
+       				{
+       					output_2[mm] = cv::Point3f((lastVertex3D[mm].x*1.0/3 + output_1[nn].x*2.0/3) , (lastVertex3D[mm].y*1.0/3 + output_1[nn].y*2.0/3), (lastVertex3D[mm].z*1.0/3 + output_1[nn].z*2.0/3));
+       					min_dis = dis;
+       				}
+       			}
+       		}
+       	}
+       	else // >10
+       		output_2 = output_1;
 
-		if (max_dis_2 <= second_diff) // 0~6
-		{
-			output_2 = lastVertex3D;
-		}
-		else if (max_dis_2 > second_diff  && max_dis_2 < second_diff * 2) //6~10
-		{
-			for (size_t mm = 0; mm < 4; ++mm)
-			{
-				float min_dis = 1000;
-				for (size_t nn = 0; nn < 4; ++nn)
-				{
-					float dis = sqrt((lastVertex3D[mm].x - output_1[nn].x)*(lastVertex3D[mm].x - output_1[nn].x) + (lastVertex3D[mm].y - output_1[nn].y)*(lastVertex3D[mm].y - output_1[nn].y));
-					cout << dis << endl;
-					if (dis < min_dis)
-					{
-						output_2[mm] = cv::Point3f((lastVertex3D[mm].x + output_1[nn].x) / 2, (lastVertex3D[mm].y + output_1[nn].y) / 2, (lastVertex3D[mm].z + output_1[nn].z) / 2);
-						min_dis = dis;
-					}
-
-				}
-			}
-		}
-		else // >10
-		{
-			output_2 = output_1;
-		}
-
-		clockwiseContour(output_2);  //counter clockwise the points
-		for (size_t index = 0; index <output_2.size(); ++index)
-		{
-			output_2[index].y -= bias;
-			output_2[index].z -= dep_bias;
-		}
-		stereoProjectDesk.proVertex3D = output_2;
-		stereoProjectDesk.valid = true;
-#pragma endregion
+       	clockwiseContour(output_2);  //counter clockwise the points
+       	for(size_t index =0; index <output_2.size(); ++index)
+       	{
+       	    output_2[index].y -= bias;
+       	    output_2[index].z -= dep_bias;
+       	}
+        stereoProjectDesk.last_bias = dep_bias;
+       	stereoProjectDesk.proVertex3D = output_2;
+       	stereoProjectDesk.valid = true;
+        #pragma endregion
+        //LOGD("max_dis_1: %f, max_dis_2: %f, second_diff: %f, depth_bias: %f", max_dis_1, max_dis_2, second_diff, dep_bias);
 	}
 }
-
 
 /*!
 @function              make sure contour points is colokwise
