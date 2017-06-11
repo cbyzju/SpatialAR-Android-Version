@@ -1,4 +1,4 @@
-G:/SpatialAR/Orbbec-master-84bcf17b59829a765a179e493046a328745f9a99/app/obj/local/armeabi-v7a/objs/jni-input/com_orbbec_NativeNI_NativeGestureDetect.o: \
+C:/work/SpatialAR/app/obj/local/armeabi-v7a/objs/jni-input/com_orbbec_NativeNI_NativeGestureDetect.o: \
  com_orbbec_NativeNI_NativeGestureDetect.cpp ../JSON/jni.h \
  ../JSON/jni_md.h \
  C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/opencv.hpp \
@@ -350,8 +350,45 @@ G:/SpatialAR/Orbbec-master-84bcf17b59829a765a179e493046a328745f9a99/app/obj/loca
  G:/pcl-android/pcl-android/include/pcl/Vertices.h \
  G:/pcl-android/pcl-android/include/pcl/TextureMesh.h \
  G:/pcl-android/pcl-android/include/pcl/io/impl/pcd_io.hpp \
- G:/pcl-android/pcl-android/include/pcl/io/lzf.h json.h autolink.h \
- config.h value.h forwards.h reader.h features2.h writer.h
+ G:/pcl-android/pcl-android/include/pcl/io/lzf.h \
+ G:/pcl-android/eigen/Eigen\Eigen G:/pcl-android/eigen/Eigen\Dense \
+ G:/pcl-android/eigen/Eigen\Core G:/pcl-android/eigen/Eigen\LU \
+ G:/pcl-android/eigen/Eigen\Cholesky G:/pcl-android/eigen/Eigen\QR \
+ G:/pcl-android/eigen/Eigen\SVD G:/pcl-android/eigen/Eigen\Geometry \
+ G:/pcl-android/eigen/Eigen\Eigenvalues G:/pcl-android/eigen/Eigen\SVD \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/flann.hpp \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/general.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/defines.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/matrix.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/params.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/any.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/nn_index.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/result_set.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/all_indices.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/kdtree_index.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/dynamic_bitset.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/dist.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/heap.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/allocator.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/random.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/kdtree_single_index.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/kmeans_index.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/logger.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/composite_index.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/linear_index.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/hierarchical_clustering_index.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/lsh_index.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/lsh_table.h \
+ C:/android-ndk-r12b/build//../sources/cxx-stl/gnu-libstdc++/4.9/include/unordered_map \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/autotuned_index.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/ground_truth.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/index_testing.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/timer.h \
+ C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/sampling.h \
+ json.h autolink.h config.h value.h forwards.h reader.h features2.h \
+ writer.h
 
 ../JSON/jni.h:
 
@@ -1066,6 +1103,88 @@ G:/pcl-android/pcl-android/include/pcl/TextureMesh.h:
 G:/pcl-android/pcl-android/include/pcl/io/impl/pcd_io.hpp:
 
 G:/pcl-android/pcl-android/include/pcl/io/lzf.h:
+
+G:/pcl-android/eigen/Eigen\Eigen:
+
+G:/pcl-android/eigen/Eigen\Dense:
+
+G:/pcl-android/eigen/Eigen\Core:
+
+G:/pcl-android/eigen/Eigen\LU:
+
+G:/pcl-android/eigen/Eigen\Cholesky:
+
+G:/pcl-android/eigen/Eigen\QR:
+
+G:/pcl-android/eigen/Eigen\SVD:
+
+G:/pcl-android/eigen/Eigen\Geometry:
+
+G:/pcl-android/eigen/Eigen\Eigenvalues:
+
+G:/pcl-android/eigen/Eigen\SVD:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/flann.hpp:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/flann_base.hpp:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/general.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/defines.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/matrix.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/params.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/any.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/saving.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/nn_index.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/result_set.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/all_indices.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/kdtree_index.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/dynamic_bitset.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/dist.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/heap.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/allocator.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/random.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/kdtree_single_index.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/kmeans_index.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/logger.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/composite_index.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/linear_index.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/hierarchical_clustering_index.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/lsh_index.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/lsh_table.h:
+
+C:/android-ndk-r12b/build//../sources/cxx-stl/gnu-libstdc++/4.9/include/unordered_map:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/autotuned_index.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/ground_truth.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/index_testing.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/timer.h:
+
+C:/OpenCV-2.4.10-android-sdk/sdk/native/jni/include/opencv2/flann/sampling.h:
 
 json.h:
 

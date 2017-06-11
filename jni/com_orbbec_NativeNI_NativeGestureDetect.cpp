@@ -79,17 +79,17 @@ string AndroidResponds(ProjectorCamera* proCameraPtr)
         	float scalar = 1;
         	float offset_x = 0;
         	float offset_y = 0;
-        	//if(proCameraPtr->stereoProjectDesk.boatDemo)
-        	//{
+        	if(proCameraPtr->stereoProjectDesk.boatDemo)
+        	{
         	    //scalar = 0.98;
-        	  //  offset_x = -0.004;
-        	//}
-        	//else
-        	//{
+        	    offset_x = -0.004;
+        	}
+        	else
+        	{
         	   // scalar = 1.01;
-        	   // offset_x = -0.002;
+        	   offset_x = -0.003;
         	    //offset_y = 0.001;
-        	//}
+        	}
         	jinfo["x"] = proCameraPtr->stereoProjectDesk.proVertex3D[ind].x / 1000 * scalar + offset_x;
         	jinfo["y"] = proCameraPtr->stereoProjectDesk.proVertex3D[ind].y / 1000 * scalar + offset_y;
         	jinfo["z"] = proCameraPtr->stereoProjectDesk.proVertex3D[ind].z / 1000;

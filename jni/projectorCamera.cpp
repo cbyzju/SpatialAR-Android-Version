@@ -183,6 +183,126 @@ string ProjectorCamera::intTostring(int num)
 	return out;
 }
 
+void ProjectorCamera::icp(Eigen::Matrix<double, 3, 5>& source, Eigen::Matrix<double, 3, 5>& target, int max_iterations, Eigen::Matrix<double, 4, 4>& final_transformation)
+{
+	Eigen::Matrix<double, 3, 1> centroid_src;
+	Eigen::Matrix<double, 3, 1> centroid_tgt;
+	Eigen::Matrix<double, 3, 5> src_demean, tgt_demean;
+
+
+	cv::Mat m_target(5, 3, CV_32FC1);
+	cv::Mat m_source(5, 3, CV_32FC1);
+	Eigen::Matrix<double, 3, 5> new_target;
+	for (size_t inx = 0; inx < 5; ++inx)
+		for (size_t iny = 0; iny < 3; ++iny)
+			m_target.at<float>(inx, iny) = target(iny, inx);
+
+	double dist_sum_current;
+	double dist_sum_old = 0;
+	cv::Mat indices, dists;
+	cv::flann::Index flannIndex(m_target, cv::flann::LinearIndexParams());
+    //, cvflann::FLANN_DIST_L2
+
+	int loop = 0;
+	CVTIME  total;
+	CVTIME looptime;
+	CVTIME knntime;
+	CVTIME svdtime;
+	while(loop< max_iterations)
+	{
+	    total.reset();
+	    knntime.reset();
+	    //CVTIME first_part;
+		++loop;
+#pragma region calculate the correspondences between the new source and the target
+		for (size_t inx = 0; inx < 5; ++inx)
+			for (size_t iny = 0; iny < 3; ++iny)
+				m_source.at<float>(inx, iny) = source(iny, inx);
+
+
+		flannIndex.knnSearch(m_source, indices, dists, 1, cv::flann::SearchParams(4));
+
+		dist_sum_current = 0;
+		for (size_t ind = 0; ind < dists.rows; ++ind)
+			dist_sum_current += dists.at<float>(ind, 0);
+		if (dist_sum_current != dist_sum_old)
+			dist_sum_old = dist_sum_current;
+		else
+			break;
+
+		for (size_t inx = 0; inx < 3; ++inx)
+			for (size_t iny = 0; iny < 5; ++iny)
+				new_target(inx, iny) = m_target.at<float>(indices.at<int>(iny, 0), inx);
+#pragma endregion
+
+#pragma region centralization
+		Eigen::Matrix<double, 3, 5> src_demean, tgt_demean;
+		centroid_tgt.setZero();
+		for (size_t ind = 0; ind < 5; ++ind)
+		{
+			centroid_tgt(0, 0) += new_target(0, ind);
+			centroid_tgt(1, 0) += new_target(1, ind);
+			centroid_tgt(2, 0) += new_target(2, ind);
+		}
+		centroid_tgt /= 5;
+
+		for (size_t ind = 0; ind < 5; ++ind)
+		{
+			tgt_demean(0, ind) = new_target(0, ind) - centroid_tgt(0, 0);
+			tgt_demean(1, ind) = new_target(1, ind) - centroid_tgt(1, 0);
+			tgt_demean(2, ind) = new_target(2, ind) - centroid_tgt(2, 0);
+		}
+
+		centroid_src.setZero();
+		for (size_t ind = 0; ind < 5; ++ind)
+		{
+			centroid_src(0, 0) += source(0, ind);
+			centroid_src(1, 0) += source(1, ind);
+			centroid_src(2, 0) += source(2, ind);
+		}
+		centroid_src /= 5;
+
+		for (size_t ind = 0; ind < 5; ++ind)
+		{
+			src_demean(0, ind) = source(0, ind) - centroid_src(0, 0);
+			src_demean(1, ind) = source(1, ind) - centroid_src(1, 0);
+			src_demean(2, ind) = source(2, ind) - centroid_src(2, 0);
+		}
+       // LOGD("id %d nativeStart caught cake flann-KnnSearch: %f", stereoProjectDesk.lastId, first_part.getClock());
+#pragma endregion
+        LOGD("id %d nativeStart caught cake knntime: %f", stereoProjectDesk.lastId, knntime.getClock());
+        svdtime.reset();
+		Eigen::Matrix<double, 3, 3> H = (src_demean * tgt_demean.transpose());
+		Eigen::JacobiSVD<Eigen::Matrix<double, 3, 3> > svd(H, Eigen::ComputeFullU | Eigen::ComputeFullV);
+		Eigen::Matrix<double, 3, 3> u = svd.matrixU();
+		Eigen::Matrix<double, 3, 3> v = svd.matrixV();
+
+		// Compute R = V * U'
+		if (u.determinant() * v.determinant() < 0)
+		{
+			for (int x = 0; x < 3; ++x)
+				v(x, 2) *= -1;
+		}
+
+		Eigen::Matrix<double, 3, 3> R = v * u.transpose();
+
+		// Return the correct transformation
+		Eigen::Matrix<double, 4, 4> transformation_matrix;
+		transformation_matrix.setIdentity();
+		transformation_matrix.topLeftCorner(3, 3) = R;
+		const Eigen::Matrix<double, 3, 1> Rc(R * centroid_src.head(3));
+		Eigen::Matrix<double, 3, 1> T = centroid_tgt.head(3) - Rc;
+		transformation_matrix.block(0, 3, 3, 1) = T;
+		for (size_t ind = 0; ind < 5; ++ind)
+			source.col(ind) = R*source.col(ind) + T;
+		final_transformation = transformation_matrix*final_transformation;
+        //LOGD("id %d nativeStart caught cake SVDOnDeskObjectTime: %f", stereoProjectDesk.lastId, second_part.getClock());
+        LOGD("id %d nativeStart caught cake svdtime: %f", stereoProjectDesk.lastId, svdtime.getClock());
+        LOGD("id %d nativeStart caught cake total-oneloop: %f", stereoProjectDesk.lastId, total.getClock());
+	}
+     LOGD("id %d nativeStart caught cake loopOnDeskObjectTime: %f", stereoProjectDesk.lastId, looptime.getClock());
+}
+
 /*!
 @function              using fixed calibration parameters
 @abstract
@@ -500,7 +620,7 @@ void ProjectorCamera::processing(cv::Mat& iRSrc, cv::Mat& depthSrc)
         CVTIME findOnDeskObjectTime;
 	    findOnDeskObject();
 	    //findInAirObject();
-	    LOGD("nativeStart caught cake findOnDeskObjectTime: %f", findOnDeskObjectTime.getClock());
+	    LOGD("id %d, nativeStart caught cake findOnDeskObjectTime: %f", stereoProjectDesk.lastId-1, findOnDeskObjectTime.getClock());
 	}
 	else if(appState == 2)
 	{
@@ -1131,38 +1251,6 @@ void ProjectorCamera::findOnDeskObject()
         			 colToProR.at<double>(2, 0), colToProR.at<double>(2, 1), colToProR.at<double>(2, 2);
         ColToProT << colToProT.at<double>(0, 0), colToProT.at<double>(1, 0), colToProT.at<double>(2, 0);
         #pragma endregion
-
-		pcl::PointCloud<pcl::PointXYZ>::Ptr target(new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::PointCloud<pcl::PointXYZ>::Ptr source(new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::PointCloud<pcl::PointXYZ>::Ptr result(new pcl::PointCloud<pcl::PointXYZ>);
-
-		if (pcl::io::loadPCDFile<pcl::PointXYZ>("/sdcard/five_n.pcd", *target) == -1)//打开点云文件
-		{
-			//LOGD("frameId: %d Couldn't read file target.pcd", frameId);
-			return;
-		}
-
-	    #pragma region construct source point cloud, select four corner points and the center
-    	source->width = target->points.size();
-    	source->height = 1;
-    	source->is_dense = false;
-    	source->points.resize(source->width * source->height);
-    	Eigen::Matrix<double, 3, 1> Tmp;
-    	Eigen::Matrix<double, 3, 1> PointInCol;
-    	for (size_t k = 0; k < vpoints.size(); ++k) //图像像素坐标系下的点在相机坐标系下的物理坐标
-    	{
-    	    //LOGD("coordinate %f, %f\n", vpoints[k].y, vpoints[k].x);
-    		double depthVal = averaImg.at<float>(vpoints[k].y, vpoints[k].x);
-    		Tmp(0, 0) = depthVal * (vpoints[k].x + screenRoi.x - cx)*1.0 / fx;
-    		Tmp(1, 0) = depthVal * (vpoints[k].y + screenRoi.y - cy)*1.0 / fy;
-    		Tmp(2, 0) = depthVal;
-    		PointInCol = DepToColR*Tmp + DepToColT;
-    		source->points[k].x = PointInCol(0, 0);
-    		source->points[k].y = PointInCol(1, 0);
-    		source->points[k].z = PointInCol(2, 0);
-    		//cout << "( " << PointInCol(0, 0) << "," << PointInCol(1, 0) << ", " << PointInCol(2, 0) <<")"<< endl;
-    	}
-        #pragma endregion
 /*
         //去除镜头的径向畸变
         for (size_t index = 0; index < vpoints.size(); ++index)
@@ -1178,18 +1266,28 @@ void ProjectorCamera::findOnDeskObject()
         		vpoints[mk].y -= screenRoi.y;
         }
 */
-        #pragma region icp registration
-		size_t iterations = 200;
-		//pcl::GeneralizedIterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
-		pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
-		icp.setEuclideanFitnessEpsilon(1e-8);
-		//.setTransformationEpsilon(1e-8);
-		//icp.setMaximumIterations(iterations);
-		icp.setInputSource(source);
-		icp.setInputTarget(target);
-		icp.align(*result);
-		Eigen::Matrix4f transformation = icp.getFinalTransformation(); // Obtain the transformation that aligned source to target
+        CVTIME modification;
+		Eigen::Matrix<double, 3, 5> target;
+		Eigen::Matrix<double, 3, 5> source;
+		target <<  94, -94,  94, -94,    0,
+			       94, -94, -94,  94,    0,
+			        0,   0,   0,   0, 30.2;
+        Eigen::Matrix<double, 3, 1> Tmp;
+        for (size_t k = 0; k < vpoints.size(); ++k) //图像像素坐标系下的点在相机坐标系下的物理坐标
+        {
+        	double depthVal = averaImg.at<float>(vpoints[k].y, vpoints[k].x);
+        	Tmp(0, 0) = depthVal * (vpoints[k].x + screenRoi.x - cx)*1.0 / fx;
+        	Tmp(1, 0) = depthVal * (vpoints[k].y + screenRoi.y - cy)*1.0 / fy;
+        	Tmp(2, 0) = depthVal;
+        	source.col(k) = DepToColR*Tmp + DepToColT;
+        }
+		Eigen::Matrix<double, 4, 4> transformation;
+		transformation.setIdentity();
+		int max_iterations = 5;
 
+	    CVTIME icp_time;
+		icp(source, target, max_iterations, transformation);
+		LOGD("id %d, nativeStart caught cake icpOnDeskObjectTime: %f", stereoProjectDesk.lastId, icp_time.getClock());
 		Eigen::Matrix<double, 3, 3> RR;
 		Eigen::Matrix<double, 3, 3> R_inv;
 		Eigen::Matrix<double, 3, 1> TT;
@@ -1198,16 +1296,13 @@ void ProjectorCamera::findOnDeskObject()
 			  transformation(2, 0), transformation(2, 1), transformation(2, 2);
 		R_inv = RR.inverse();
 		TT << transformation(0, 3), transformation(1, 3), transformation(2, 3);
-        #pragma endregion
 
-        #pragma region move the key points in template to the right place by RT matrix achieved by icp algorithm
+#pragma region move the key points in template to the right place by RT matrix achieved by icp algorithm
 		Eigen::Matrix<double, 3, 4> Corner;
-		Eigen::Matrix<double, 3, 1> Point;
 		for (size_t ii = 0; ii < 4; ++ii)   //
-		{
-			Point << target->points[ii].x, target->points[ii].y, target->points[ii].z;
-			Corner.col(ii) = R_inv * (Point - TT);  //模板点在相机坐标系下的坐标
-		}
+			Corner.col(ii) = R_inv * (target.col(ii) - TT);  //模板点在相机坐标系下的坐标
+
+        LOGD("id %d, nativeStart caught cake modificationObjectTime: %f", stereoProjectDesk.lastId, modification.getClock());
 		Eigen::Matrix<double, 3, 4> CornerInImage;
 		for (size_t ii = 0; ii < 4; ++ii)
 		{

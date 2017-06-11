@@ -26,6 +26,9 @@ note:       projectorCamera system processing file
 #include <pcl/registration/icp.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#include <Eigen\Eigen>
+#include <Eigen\SVD>
+#include <opencv2/flann/flann.hpp>
 
 //LOG DEFINITIONS
 #define LOG_TAG_FLOW "ProjectorCamera/ProcessingFlow"
@@ -115,7 +118,7 @@ public:
 	void clockwiseContour(vector<cv::Point3f>&);
 	void clockwiseContour(vector<cv::Point2f>&);
 	void clockwiseContour(vector<cv::Point>&);
-
+    void icp(Eigen::Matrix<double, 3, 5>& source, Eigen::Matrix<double, 3, 5>& target, int max_iterations, Eigen::Matrix<double, 4, 4>& final_transformation);
 	//zhangbo
     bool isHandGraspOrOpen(double& handRatio, int& approxCurveSize, int& hullsize, int& littleangle, int& distance_x,int& distance_y, cv::Point& centerpoint);
     int handWaveState(vector<cv::Point>& pointsInLastFrames);

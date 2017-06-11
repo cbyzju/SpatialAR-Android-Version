@@ -1,5 +1,5 @@
 #Internal package file, do not edit.
-#Tue Jun 06 16:40:06 CST 2017
+#Sun Jun 11 22:11:49 CST 2017
 25.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\stripDebugSymbol\\debug\\folders\\2000\\1f\\main\\lib\\armeabi-v7a\\libOrbbecUtils_jni.so
 41.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\stripDebugSymbol\\debug\\folders\\2000\\1f\\main
 25.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\stripDebugSymbol\\debug\\folders\\2000\\1f\\main
@@ -10,7 +10,7 @@
 38.set=NATIVE_RESOURCE
 11.set=NATIVE_RESOURCE
 27.set=ANDROID_RESOURCE
-30.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\layout\\calibration.xml
+30.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\AndroidManifest.xml
 14.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\drawable-mdpi-v4\\ic_launcher.png
 30.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_
 14.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_
@@ -32,7 +32,7 @@ count=42
 20.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\stripDebugSymbol\\debug\\folders\\2000\\1f\\main
 37.set=NATIVE_RESOURCE
 10.set=JAVA_RESOURCE
-31.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\AndroidManifest.xml
+31.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\layout\\calibration.xml
 15.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\layout\\main.xml
 31.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_
 15.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_
@@ -62,7 +62,7 @@ count=42
 17.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\raw\\fixprinpoint_undistorpoint.xml
 25.set=NATIVE_RESOURCE
 17.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_
-10.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\mergeJavaRes\\debug\\jars\\2\\1f\\main.jar\\assets\\openni\\SamplesConfig.xml
+10.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\mergeJavaRes\\debug\\jars\\2\\1f\\main.jar\\assets\\pointer_spot_anchor.png
 28.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\stripDebugSymbol\\debug\\folders\\2000\\1f\\main\\lib\\armeabi-v7a\\libjni-input.so
 10.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\mergeJavaRes\\debug\\jars\\2\\1f\\main.jar
 28.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\stripDebugSymbol\\debug\\folders\\2000\\1f\\main
@@ -79,7 +79,7 @@ count=42
 30.set=ANDROID_RESOURCE
 33.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\stripDebugSymbol\\debug\\folders\\2000\\1f\\main\\lib\\armeabi-v7a\\libopencv_java.so
 33.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\stripDebugSymbol\\debug\\folders\\2000\\1f\\main
-9.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\mergeJavaRes\\debug\\jars\\2\\1f\\main.jar\\assets\\pointer_spot_anchor.png
+9.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\mergeJavaRes\\debug\\jars\\2\\1f\\main.jar\\assets\\openni\\SamplesConfig.xml
 5.set=NATIVE_RESOURCE
 18.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\stripDebugSymbol\\debug\\folders\\2000\\1f\\main\\lib\\armeabi-v7a\\libOrbbecUtils.so
 9.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\transforms\\mergeJavaRes\\debug\\jars\\2\\1f\\main.jar

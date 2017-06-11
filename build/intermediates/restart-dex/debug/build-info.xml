@@ -5,7 +5,7 @@
     density="mdpi"
     format="8"
     plugin-version="2.2.3"
-    timestamp="112489040606890"
+    timestamp="445877104424327"
     token="-9113327107294461860"
     verifier="FULL_BUILD_REQUESTED" >
 
@@ -27,7 +27,7 @@
         type="MAIN" />
 
     <build
-        timestamp="112489040606890"
+        timestamp="445877104424327"
         verifier="FULL_BUILD_REQUESTED" >
         <artifact
             location="C:\work\SpatialAR\app\build\outputs\apk\app-debug.apk"
