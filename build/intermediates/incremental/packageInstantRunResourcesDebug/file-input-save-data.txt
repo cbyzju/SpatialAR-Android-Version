@@ -1,5 +1,5 @@
 #Internal package file, do not edit.
-#Sun Jun 11 18:16:34 CST 2017
+#Mon Jun 12 13:44:50 CST 2017
 2.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_
 5.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\layout\\main.xml
 5.set=ANDROID_RESOURCE
@@ -9,15 +9,15 @@
 10.set=ASSET
 10.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\assets\\debug\\cascade_zfz.xml
 4.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_
-7.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\AndroidManifest.xml
+7.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\layout\\calibration.xml
 7.set=ANDROID_RESOURCE
 count=11
-0.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\raw\\cascade_zfz.xml
+0.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\drawable-mdpi-v4\\calibration.jpg
 5.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_
-8.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\layout\\calibration.xml
+8.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\AndroidManifest.xml
 4.set=ANDROID_RESOURCE
 6.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_
-1.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\drawable-mdpi-v4\\calibration.jpg
+1.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\raw\\cascade_zfz.xml
 9.set=ANDROID_RESOURCE
 9.file=C\:\\work\\SpatialAR\\app\\build\\intermediates\\res\\resources-debug.ap_\\res\\raw\\nofixprinpoint_undistorpoint.xml
 10.base=C\:\\work\\SpatialAR\\app\\build\\intermediates\\assets\\debug

@@ -1208,7 +1208,7 @@ void ProjectorCamera::findOnDeskObject()
 			abs(norm(temHand.approxCurve[2] - temHand.approxCurve[1])
 			- norm(temHand.approxCurve[0] - temHand.approxCurve[3])) > 50)
 				continue;
-
+        LOGD("boatDemo state:%d, centerDepth: %f", boatDemo, centerDepth);
 		//get four verticals
 		cv::RotatedRect rorec = minAreaRect(objects[ind].contour);
 		cv::Point2f ppt[4];
@@ -1231,6 +1231,18 @@ void ProjectorCamera::findOnDeskObject()
         center = mean(vpoints);
         centerPoint = cv::Point(center.val[0], center.val[1]);
         vpoints.push_back(centerPoint);
+
+        bool outofBoundary = false;  //check if the points are out of boundary or not.
+ 		for (int ind = 0; ind < vpoints.size(); ++ind)
+ 		{
+ 			if (vpoints[ind].x<1 || vpoints[ind].x>screenRoi.width - 1 || vpoints[ind].y<1 || vpoints[ind].y>screenRoi.height - 1)
+ 			{
+ 				outofBoundary = true;
+ 				break;
+ 			}
+ 		}
+ 		if (outofBoundary)
+ 			continue;
 
         #pragma region read camera parameters and store them by Eigen, it is convinient for calculating
         double cx = depth_KK.at<double>(0, 2);
@@ -1266,28 +1278,44 @@ void ProjectorCamera::findOnDeskObject()
         		vpoints[mk].y -= screenRoi.y;
         }
 */
-        CVTIME modification;
 		Eigen::Matrix<double, 3, 5> target;
 		Eigen::Matrix<double, 3, 5> source;
 		target <<  94, -94,  94, -94,    0,
 			       94, -94, -94,  94,    0,
 			        0,   0,   0,   0, 30.2;
         Eigen::Matrix<double, 3, 1> Tmp;
+        double depthVal;
         for (size_t k = 0; k < vpoints.size(); ++k) //图像像素坐标系下的点在相机坐标系下的物理坐标
         {
-        	double depthVal = averaImg.at<float>(vpoints[k].y, vpoints[k].x);
-        	Tmp(0, 0) = depthVal * (vpoints[k].x + screenRoi.x - cx)*1.0 / fx;
-        	Tmp(1, 0) = depthVal * (vpoints[k].y + screenRoi.y - cy)*1.0 / fy;
-        	Tmp(2, 0) = depthVal;
-        	source.col(k) = DepToColR*Tmp + DepToColT;
+            //LOGD("vpoints coordinate: (%f, %f)", vpoints[k].y, vpoints[k].x);
+            if(boatDemo)
+            {
+                if(k==vpoints.size()-1)
+                   depthVal = averaImg.at<float>(vpoints[k].y, vpoints[k].x);
+                else
+                   depthVal = averaImg.at<float>(vpoints[k].y, vpoints[k].x)+30;
+                Tmp(0, 0) = depthVal * (vpoints[k].x + screenRoi.x - cx)*1.0 / fx;
+                Tmp(1, 0) = depthVal * (vpoints[k].y + screenRoi.y - cy)*1.0 / fy;
+                Tmp(2, 0) = depthVal;
+                source.col(k) = DepToColR*Tmp + DepToColT;
+            }
+        	else
+        	{
+        	    if(k==vpoints.size()-1)
+                   depthVal = averaImg.at<float>(vpoints[k].y, vpoints[k].x)+30;
+                else
+                   depthVal = averaImg.at<float>(vpoints[k].y, vpoints[k].x);
+                Tmp(0, 0) = depthVal * (vpoints[k].x + screenRoi.x - cx)*1.0 / fx;
+                Tmp(1, 0) = depthVal * (vpoints[k].y + screenRoi.y - cy)*1.0 / fy;
+                Tmp(2, 0) = depthVal;
+                source.col(k) = DepToColR*Tmp + DepToColT;
+        	}
         }
 		Eigen::Matrix<double, 4, 4> transformation;
 		transformation.setIdentity();
 		int max_iterations = 5;
 
-	    CVTIME icp_time;
 		icp(source, target, max_iterations, transformation);
-		LOGD("id %d, nativeStart caught cake icpOnDeskObjectTime: %f", stereoProjectDesk.lastId, icp_time.getClock());
 		Eigen::Matrix<double, 3, 3> RR;
 		Eigen::Matrix<double, 3, 3> R_inv;
 		Eigen::Matrix<double, 3, 1> TT;
@@ -1302,7 +1330,6 @@ void ProjectorCamera::findOnDeskObject()
 		for (size_t ii = 0; ii < 4; ++ii)   //
 			Corner.col(ii) = R_inv * (target.col(ii) - TT);  //模板点在相机坐标系下的坐标
 
-        LOGD("id %d, nativeStart caught cake modificationObjectTime: %f", stereoProjectDesk.lastId, modification.getClock());
 		Eigen::Matrix<double, 3, 4> CornerInImage;
 		for (size_t ii = 0; ii < 4; ++ii)
 		{
@@ -1432,6 +1459,7 @@ void ProjectorCamera::findOnDeskObject()
        	}
         stereoProjectDesk.last_bias = dep_bias;
        	stereoProjectDesk.proVertex3D = output_2;
+       	stereoProjectDesk.boatDemo = boatDemo;
        	stereoProjectDesk.valid = true;
         #pragma endregion
         //LOGD("max_dis_1: %f, max_dis_2: %f, second_diff: %f, depth_bias: %f", max_dis_1, max_dis_2, second_diff, dep_bias);

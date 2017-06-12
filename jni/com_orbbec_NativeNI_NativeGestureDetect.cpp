@@ -81,8 +81,9 @@ string AndroidResponds(ProjectorCamera* proCameraPtr)
         	float offset_y = 0;
         	if(proCameraPtr->stereoProjectDesk.boatDemo)
         	{
-        	    //scalar = 0.98;
-        	    offset_x = -0.004;
+        	    scalar = 0.98;
+        	    offset_x = -0.008;
+        	    offset_y = -0.005;
         	}
         	else
         	{
@@ -90,6 +91,7 @@ string AndroidResponds(ProjectorCamera* proCameraPtr)
         	   offset_x = -0.003;
         	    //offset_y = 0.001;
         	}
+        	LOGD("boatDemo: %d, offset_x:%f, offset_y: %f", proCameraPtr->stereoProjectDesk.boatDemo, offset_x, offset_y);
         	jinfo["x"] = proCameraPtr->stereoProjectDesk.proVertex3D[ind].x / 1000 * scalar + offset_x;
         	jinfo["y"] = proCameraPtr->stereoProjectDesk.proVertex3D[ind].y / 1000 * scalar + offset_y;
         	jinfo["z"] = proCameraPtr->stereoProjectDesk.proVertex3D[ind].z / 1000;
